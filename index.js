@@ -13,7 +13,8 @@ app.get('/', all.getHello)
 app.get('/users', users.getAllUser)
 app.get('/users/:id', users.getUserById)
 app.delete('/users/:id', users.deleteUserById)
-app.post('/users/register', users.register)
+app.post('/register', users.register)
+app.post('/login', users.login)
 
 app.listen(port, () => {
   console.log(`Express app is listening on localhost:${port}`)

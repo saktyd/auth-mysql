@@ -34,14 +34,35 @@ module.exports = {
     })
   },
 
+  login: async (req, res) => {
+    const foundUser = await knex('users').where('email', req.body.email)
+
+    const authenticated = await helpers.comparePassword(
+      req.body.password,
+      foundUser.password
+    )
+    // console.log(authenticated)
+
+    // create token with JWT
+    const token = await helpers.createToken(foundUser)
+
+    res.send({
+      message: 'Login with registered user',
+      user: user,
+      foundUser: {
+        name: foundUser.name,
+        email: foundUser.email
+      },
+      authenticated: authenticated,
+      token: token
+    })
+  },
+
   //Get user by id
   getUserById: async (req, res) => {
     res.send({
       message: 'List of all users',
-      user: await knex
-        .select()
-        .from('users')
-        .where('id', Number(req.params.id))
+      user: await knex('users').where('id', Number(req.params.id))
     })
   },
 
