@@ -9,13 +9,14 @@ app.use(bodyParser.json())
 
 const all = require('./middlewares')
 const users = require('./middlewares/users')
+const helpers = require('./helpers')
 
 app.get('/', all.getHello)
 app.post('/register', users.register)
 app.post('/login', users.login)
 app.get('/users', users.getAllUser)
 app.get('/users/:id', users.getUserById)
-app.delete('/users/:id', users.deleteUserById)
+app.delete('/users/:id', helpers.isAuthorized, users.deleteUserById)
 
 app.listen(port, () => {
   console.log(`Express app is listening on localhost:${port}`)

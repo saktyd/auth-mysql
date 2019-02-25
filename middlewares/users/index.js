@@ -23,32 +23,37 @@ module.exports = {
       req.body.password
     )
 
+    await knex('users').insert({
+      name: req.body.name,
+      email: req.body.email,
+      salt: salt,
+      password: hashedPassword
+    })
+
     res.send({
-      message: 'Register',
-      user: await knex('users').insert({
-        name: req.body.name,
-        email: req.body.email,
-        salt: salt,
-        password: hashedPassword
-      })
+      message: 'Successfully register user',
+      name: req.body.name,
+      email: req.body.email
     })
   },
 
   login: async (req, res) => {
-    const foundUser = await knex('users').where('email', req.body.email)
+    const foundUser = await knex('users')
+      .where('email', req.body.email)
+      .first()
+    // return one object instead of array
 
     const authenticated = await helpers.comparePassword(
       req.body.password,
       foundUser.password
     )
-    // console.log(authenticated)
+    console.log(authenticated)
 
     // create token with JWT
     const token = await helpers.createToken(foundUser)
 
     res.send({
       message: 'Login with registered user',
-      user: user,
       foundUser: {
         name: foundUser.name,
         email: foundUser.email
@@ -68,11 +73,20 @@ module.exports = {
 
   //Delete user by id
   deleteUserById: async (req, res) => {
-    res.send({
-      message: 'One user has been deleted',
-      user: await knex('users')
-        .where('id', req.params.id)
-        .del()
-    })
+    const id = Number(req.params.id)
+
+    // if id is the same with authorized logged in user's subject key
+    if (req.decoded.sub === id) {
+      res.send({
+        message: 'One user has been deleted',
+        status: await knex('users')
+          .where('id', id)
+          .del()
+      })
+    } else {
+      res.send({
+        message: 'Failed to delete user, you are not authorized'
+      })
+    }
   }
 }

@@ -1,7 +1,7 @@
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 
-module.exports = {
+const helpers = {
   encryptPassword: async plainPassword => {
     const salt = await bcrypt.genSalt(10)
 
@@ -21,7 +21,7 @@ module.exports = {
 
   createToken: async foundUser => {
     const payload = {
-      sub: foundUser._id
+      sub: foundUser.id
     }
 
     const token = await jwt.sign(payload, process.env.SECRET)
@@ -32,10 +32,25 @@ module.exports = {
   verifyToken: async token => {
     try {
       const decoded = await jwt.verify(token, process.env.SECRET)
-
       return decoded
     } catch (error) {
       return error
     }
+  },
+
+  isAuthorized: async (req, res, next) => {
+    try {
+      const token = req.headers.authorization.split(' ')[1]
+      const decoded = await helpers.verifyToken(token)
+      req.decoded = decoded // append decoded to req object
+      next() // continue to next middleware
+    } catch (error) {
+      res.send({
+        message: 'Error when check isAuthorized',
+        error: error
+      })
+    }
   }
 }
+
+module.exports = helpers
