@@ -1,3 +1,4 @@
+const helpers = require('../../helpers')
 const knex = require('knex')({
   client: 'mysql2',
   connection: {
@@ -17,12 +18,18 @@ module.exports = {
     })
   },
 
-  createNewUser: async (req, res) => {
+  register: async (req, res) => {
+    const { salt, hashedPassword } = await helpers.encryptPassword(
+      req.body.password
+    )
+
     res.send({
       message: 'Register',
       user: await knex('users').insert({
         name: req.body.name,
-        email: req.body.email
+        email: req.body.email,
+        salt: salt,
+        password: hashedPassword
       })
     })
   },
